@@ -4563,6 +4563,7 @@ static int tfa98xx_probe(struct snd_soc_component *component)
 	tfa98xx_add_widgets(tfa98xx);
 
 	#ifdef OPLUS_BUG_COMPATIBILITY
+	if (tfa98xx->tfa->dev_idx == 0) {
 	#if LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0)
 	snd_soc_add_codec_controls(tfa98xx->codec,
 		tfa98xx_snd_controls, ARRAY_SIZE(tfa98xx_snd_controls));
@@ -4570,6 +4571,7 @@ static int tfa98xx_probe(struct snd_soc_component *component)
 		snd_soc_add_component_controls(tfa98xx->component,
 		tfa98xx_snd_controls, ARRAY_SIZE(tfa98xx_snd_controls));
 	#endif
+	}
 	#endif /* OPLUS_BUG_COMPATIBILITY */
 
 	#ifdef OPLUS_BUG_COMPATIBILITY
@@ -5279,9 +5281,13 @@ int tfa98xx_i2c_probe(struct i2c_client *i2c,
 					      (void *)TFA98XX_DEBUG_FS_NAME,
 					      &tfa98xx_debug_ops);
 #else
-    proc_create_data(TFA98XX_DEBUG_FS_NAME,
+	{
+		char dbg_name[32];
+		snprintf(dbg_name, sizeof(dbg_name), "%s_%x", TFA98XX_DEBUG_FS_NAME, i2c->addr);
+		proc_create_data(dbg_name,
 				S_IFREG | S_IRUGO | S_IWUSR, NULL, &tfa98xx_debug_ops, (void *)
-TFA98XX_DEBUG_FS_NAME);
+		TFA98XX_DEBUG_FS_NAME);
+	}
 #endif
 	ftm_mode = get_boot_mode();
 	pr_info("ftm_mode=%d\n", ftm_mode);

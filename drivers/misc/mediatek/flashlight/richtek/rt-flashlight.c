@@ -296,7 +296,7 @@ struct flashlight_device *flashlight_device_register(const char *name,
 	int rc;
 
 	pr_debug("%s: name=%s\n", __func__, name);
-	flashlight_dev = devm_kzalloc(parent, sizeof(*flashlight_dev), GFP_KERNEL);
+	flashlight_dev = kzalloc(sizeof(*flashlight_dev), GFP_KERNEL);
 	if (!flashlight_dev)
 		return ERR_PTR(-ENOMEM);
 
@@ -312,9 +312,9 @@ struct flashlight_device *flashlight_device_register(const char *name,
 		memcpy(&flashlight_dev->props, props,
 		       sizeof(struct flashlight_properties));
 	}
-	rc = device_register(&flashlight_dev->dev);
+	rc = device_add(&flashlight_dev->dev);
 	if (rc) {
-		kfree(flashlight_dev);
+		put_device(&flashlight_dev->dev);
 		return ERR_PTR(rc);
 	}
 	flashlight_dev->ops = ops;

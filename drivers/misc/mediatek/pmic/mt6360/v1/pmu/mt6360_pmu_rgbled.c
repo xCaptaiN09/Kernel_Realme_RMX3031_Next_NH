@@ -1307,7 +1307,7 @@ static ssize_t oplus_support_regbleds_read(struct device *dev,
 	return strlen(buf);
 }
 static const struct device_attribute mt6360_rgbled_attrs[] = {
-	__ATTR(support, 0644,
+	__ATTR(support, 0444,
 		oplus_support_regbleds_read, NULL),
 	__ATTR(disable, 0644,
 		mt6360_rgbled_disable_read, mt6360_rgbled_disable_write),

@@ -6,8 +6,8 @@ export KERNEL_DIR=$(pwd)
 export CLANG_PATH=$(realpath ${KERNEL_DIR}/../toolchain/proton-clang)
 
 # Clean build directory
-rm -rf out
-mkdir -p out
+# rm -rf out
+# mkdir -p out
 
 # Configuration
 # Note: We use system host compiler for config tools

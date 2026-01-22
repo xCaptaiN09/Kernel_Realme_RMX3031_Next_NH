@@ -873,7 +873,7 @@ static struct platform_driver mt6360_pmu_fled_driver = {
 	.remove = mt6360_pmu_fled_remove,
 	.id_table = mt6360_pmu_fled_id,
 };
-module_platform_driver(mt6360_pmu_fled_driver);
+// module_platform_driver(mt6360_pmu_fled_driver);
 
 MODULE_AUTHOR("CY_Huang <cy_huang@richtek.com>");
 MODULE_DESCRIPTION("MT6360 PMU FLED Driver");

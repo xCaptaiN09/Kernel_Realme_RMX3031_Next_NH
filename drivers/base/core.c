@@ -782,7 +782,10 @@ static void device_links_flush_sync_list(struct list_head *list,
 		if (dev != dont_lock_dev)
 			device_lock(dev);
 
-		if (dev->bus->sync_state)
+		pr_info("KernelSU-Next: sync_state flush for %s (bus=%p, drv=%p)\n",
+			dev_name(dev), dev->bus, dev->driver);
+
+		if (dev->bus && dev->bus->sync_state)
 			dev->bus->sync_state(dev);
 		else if (dev->driver && dev->driver->sync_state)
 			dev->driver->sync_state(dev);

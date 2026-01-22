@@ -429,7 +429,8 @@ static struct platform_driver rt_flash_led_driver = {
 
 static int __init rtfled_init(void)
 {
-	return platform_driver_register(&rt_flash_led_driver);
+	// return platform_driver_register(&rt_flash_led_driver);
+	return 0;
 }
 subsys_initcall(rtfled_init);
 

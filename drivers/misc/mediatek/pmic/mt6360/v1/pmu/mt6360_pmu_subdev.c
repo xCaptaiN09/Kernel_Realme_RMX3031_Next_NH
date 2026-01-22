@@ -10,7 +10,7 @@
 
 #include "../inc/mt6360_pmu.h"
 
-static struct mfd_cell mt6360_pmu_subdevs[MT6360_PMUDEV_MAX] = {
+static struct mfd_cell mt6360_pmu_subdevs[] = {
 	{
 		.name = "mt6360_pmu_core",
 		.of_compatible = "mediatek,mt6360_pmu_core",
@@ -45,7 +45,7 @@ static int mt6360_pmu_init_of_subdevs(struct mt6360_pmu_info *mpi)
 	struct resource *irq_res = NULL;
 	int i, irq_cnt, ret;
 
-	for (i = 0; i < MT6360_PMUDEV_MAX; i++) {
+	for (i = 0; i < ARRAY_SIZE(mt6360_pmu_subdevs); i++) {
 		cell = mt6360_pmu_subdevs + i;
 		np = NULL;
 		for_each_child_of_node(mpi->dev->of_node, np) {
@@ -75,7 +75,7 @@ static int mt6360_pmu_init_nonof_subdevs(struct mt6360_pmu_info *mpi)
 	struct resource *res = NULL;
 	int i, j, ret;
 
-	for (i = 0; i < MT6360_PMUDEV_MAX; i++) {
+	for (i = 0; i < ARRAY_SIZE(mt6360_pmu_subdevs); i++) {
 		cell = mt6360_pmu_subdevs + i;
 		for (j = 0; j < pdata->dev_irq_res_cnt[i]; j++) {
 			res = pdata->dev_irq_resources[i] + j;

@@ -830,6 +830,16 @@ static int mt6360_pmic_i2c_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, mpi);
 	dev_info(&client->dev, "chip_rev [%02x]\n", mpi->chip_rev);
 
+#if defined(CONFIG_MTK_CHARGER)
+	/* get charger device for dvfs in FPWM mode */
+	mpi->chg_dev = get_charger_by_name("primary_chg");
+	if (!mpi->chg_dev) {
+		dev_err(&client->dev, "%s: get charger device fail\n",
+			__func__);
+		goto out_regmap;
+	}
+#endif
+
 	/* regmap regiser */
 	ret = mt6360_pmic_regmap_register(mpi, &mt6360_pmic_regmap_fops);
 	if (ret < 0) {
@@ -842,15 +852,7 @@ static int mt6360_pmic_i2c_probe(struct i2c_client *client,
 		dev_err(&client->dev, "apply pdata fail\n");
 		goto out_pdata;
 	}
-#if defined(CONFIG_MTK_CHARGER)
-	/* get charger device for dvfs in FPWM mode */
-	mpi->chg_dev = get_charger_by_name("primary_chg");
-	if (!mpi->chg_dev) {
-		dev_err(&client->dev, "%s: get charger device fail\n",
-			__func__);
-		goto out_pdata;
-	}
-#endif
+
 	ret = mt6360_pmic_init_setting(mpi);
 	if (ret < 0) {
 		dev_err(&client->dev, "%s: init setting fail\n", __func__);

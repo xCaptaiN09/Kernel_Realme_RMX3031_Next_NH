@@ -1392,12 +1392,12 @@ static struct platform_driver mt6360_platform_driver = {
 
 static int __init flashlight_mt6360_init(void)
 {
-	int ret;
+	int ret = 0;
 
 	pr_debug("Init start.\n");
 
 #ifndef CONFIG_OF
-	ret = platform_device_register(&mt6360_platform_device);
+	// ret = platform_device_register(&mt6360_platform_device);
 	if (ret) {
 		pr_info("Failed to register platform device\n");
 		return ret;
