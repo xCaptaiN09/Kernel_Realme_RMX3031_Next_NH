@@ -1,3 +1,7 @@
+#ifdef CONFIG_KSU_SUSFS
+extern void susfs_init(void);
+#endif
+
 /*
  *  linux/init/main.c
  *
@@ -735,6 +739,9 @@ asmlinkage __visible void __init start_kernel(void)
 	key_init();
 	security_init();
 	dbg_late_init();
+#ifdef CONFIG_KSU_SUSFS
+	susfs_init();
+#endif
 	vfs_caches_init();
 	pagecache_init();
 	signals_init();

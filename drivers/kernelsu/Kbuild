@@ -18,6 +18,7 @@ kernelsu-objs += util.o
 kernelsu-objs += extras.o
 
 kernelsu-objs += extras.o
+kernelsu-objs += ksu_susfs.o
 
 kernelsu-objs += selinux/selinux.o
 kernelsu-objs += selinux/sepolicy.o

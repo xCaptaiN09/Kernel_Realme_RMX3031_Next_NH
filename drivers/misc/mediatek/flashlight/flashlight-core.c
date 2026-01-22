@@ -19,6 +19,7 @@
 #include <linux/errno.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/proc_fs.h>
 
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
