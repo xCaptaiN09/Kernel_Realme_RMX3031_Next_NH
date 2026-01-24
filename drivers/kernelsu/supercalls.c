@@ -94,8 +94,8 @@ static int do_get_info(void __user *arg)
 	// Force high version if requested to satisfy manager
 	if (ksuver_override)
 	    cmd.version = ksuver_override;
-	else if (cmd.version < 33001)
-		cmd.version = 33001; // Ensure it looks like Next v3.0.0+
+	else if (cmd.version < 33002)
+		cmd.version = 33002; // Ensure it looks like Next v3.0.0+
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_version: copy_to_user failed\n");
