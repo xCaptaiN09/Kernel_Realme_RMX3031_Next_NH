@@ -366,6 +366,8 @@ int get_pkg_from_apk_path(char *pkg, const char *path)
 	strncpy(pkg, second_last_slash + 1, pkg_len);
 	pkg[pkg_len] = '\0';
 
+	pr_info("KernelSU-Next: extracted pkg: %s from path: %s\n", pkg, path);
+
 	return 0;
 }
 
@@ -376,21 +378,20 @@ bool is_manager_apk(char *path)
 		return false;
 	}
 
+	bool name_match = (strcmp(pkg, "com.rifsxd.ksunext") == 0) ||
+			  (strcmp(pkg, "io.github.rifsxd.ksunext") == 0);
+
 #ifdef CONFIG_KSU_DEBUG
-	if (strncmp(pkg, "com.rifsxd.ksunext", 18) == 0 ||
-	    strncmp(pkg, "io.github.rifsxd.ksunext", 24) == 0) {
-		pr_info("KernelSU-Next: Debug Manager detected: %s\n", pkg);
+	if (name_match) {
+		pr_info("KernelSU-Next: Debug Manager match: %s\n", pkg);
 		return true;
 	}
-	// Strictly reject everything else in debug mode
 	return false;
 #endif
 
-#ifdef KSU_MANAGER_PACKAGE
-	// pkg is `<real package>`
-	if (strncmp(pkg, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE))) {
+	if (!name_match) {
 		return false;
 	}
-#endif
+
 	return check_v2_signature(path, EXPECTED_MANAGER_SIZE, EXPECTED_MANAGER_HASH);
 }

@@ -79,31 +79,79 @@ static int do_get_info(void __user *arg)
 	cmd.flags |= 0x1;
 #endif
 
-	// Flag 0x2 is for Manager status, but we also need to signal we are "Next"
-	// Many managers check for a high version or specific flags.
-	// We'll set bit 1 (0x2) if recognized as manager, and let's add bit 3 (0x8) as a "Next" identifier if needed.
-	if (is_manager()) {
-		cmd.flags |= 0x2;
-	}
-	cmd.flags |= 0x8; // Identify as Next
-	cmd.flags |= 0x10; // Identify as Legacy
-	cmd.flags |= 0x20; // Extra Legacy indicator
-	cmd.flags |= 0x40; // Full Legacy Mode
-	cmd.features = 3; // SU_COMPAT, KERNEL_UMOUNT, SUSFS
+	                        // Flag 0x2 is for Manager status, but we also need to signal we are "Next"
 
-	// Force high version if requested to satisfy manager
-	if (ksuver_override)
-	    cmd.version = ksuver_override;
-	else if (cmd.version < 33002)
-		cmd.version = 33002; // Ensure it looks like Next v3.0.0+
+	                        // Many managers check for a high version or specific flags.
 
-	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-		pr_err("get_version: copy_to_user failed\n");
-		return -EFAULT;
-	}
+	                        // We'll set bit 1 (0x2) if recognized as manager, and let's add bit 3 (0x8) as a "Next" identifier if needed.
 
-	return 0;
-}
+	                        if (is_manager()) {
+
+	                                cmd.flags |= 0x2;
+
+	                        }
+
+	                        cmd.flags |= 0x8; // Identify as Next
+
+	                        cmd.flags |= 0x10; // Identify as Legacy
+
+	                        cmd.flags |= 0x20; // Extra Legacy indicator
+
+	                        cmd.flags |= 0x40; // Force Legacy / Hide GKI1
+
+	                        cmd.features = 3; // SU_COMPAT, KERNEL_UMOUNT, SUSFS
+
+	                
+
+	                        	// Force high version if requested to satisfy manager
+
+	                
+
+	                        	if (ksuver_override)
+
+	                
+
+	                        	    cmd.version = ksuver_override;
+
+	                
+
+	                        	else if (cmd.version < 33005)
+
+	                
+
+	                        		cmd.version = 33005; // Ensure it looks like Next v3.0.0+
+
+	                
+
+	                        
+
+	                
+
+	                        	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+
+	                
+
+	                        		pr_err("get_version: copy_to_user failed\n");
+
+	                
+
+	                        		return -EFAULT;
+
+	                
+
+	                        	}
+
+	                
+
+	                        
+
+	                
+
+	                        	return 0;
+
+	                
+
+	                        }
 
 static int do_report_event(void __user *arg)
 {
@@ -739,15 +787,14 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
           .name = "ADD_TRY_UMOUNT",
           .handler = add_try_umount,
           .perm_check = manager_or_root },
-            		{ .cmd = KSU_IOCTL_GET_VERSION_TAG,
-            		  .name = "GET_VERSION_TAG",
-            		  .handler = do_get_version_tag,
-            		  .perm_check = manager_or_root },
-            		{ .cmd = KSU_IOCTL_GET_HOOK_MODE,
-            		  .name = "GET_HOOK_MODE",
-            		  .handler = do_get_hook_mode,
-            		  .perm_check = manager_or_root },
-            		{ .cmd = KSU_IOCTL_GET_ID,              .name = "GET_ID",
+            		                        { .cmd = KSU_IOCTL_GET_VERSION_TAG,
+            		                          .name = "GET_VERSION_TAG",
+            		                          .handler = do_get_hook_mode,
+            		                          .perm_check = manager_or_root },
+            		                        { .cmd = KSU_IOCTL_GET_HOOK_MODE,
+            		                          .name = "GET_HOOK_MODE",
+            		                          .handler = do_get_version_tag,
+            		                          .perm_check = manager_or_root },            		{ .cmd = KSU_IOCTL_GET_ID,              .name = "GET_ID",
               .handler = do_get_id,
               .perm_check = manager_or_root },
             { .cmd = KSU_IOCTL_GET_HOOK_MODE_OLD,
