@@ -9,9 +9,22 @@
 #include "manager.h"
 #include "allowlist.h"
 #include "app_profile.h"
+#include "feature.h"
 
 // Missing symbols required by SUSFS patches in fs/ 
 extern bool __ksu_is_allow_uid(uid_t uid);
+
+static int susfs_feature_get(u64 *value)
+{
+    *value = 1;
+    return 0;
+}
+
+static const struct ksu_feature_handler susfs_handler = {
+    .feature_id = KSU_FEATURE_SUSFS,
+    .name = "susfs",
+    .get_handler = susfs_feature_get,
+};
 
 bool susfs_is_current_ksu_domain(void)
 {
@@ -38,8 +51,6 @@ void ksu_escape_to_root(void)
 // Wrapper for try_umount
 void ksu_try_umount(uid_t uid)
 {
-    // Implementation can be empty if not explicitly used by KSU core,
-    // as susfs handles its own list.
 }
 
 extern void susfs_try_umount(uid_t target_uid);
@@ -69,5 +80,8 @@ void ksu_susfs_init(void)
 #ifdef CONFIG_KSU_SUSFS_SUS_SU
     ksu_susfs_enable_sus_su();
 #endif
+    if (ksu_register_feature_handler(&susfs_handler)) {
+        pr_err("ksu_susfs: failed to register feature handler\n");
+    }
     pr_info("ksu_susfs: initialized\n");
 }

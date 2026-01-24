@@ -1041,3 +1041,57 @@ int susfs_sus_ino_for_filldir64(unsigned long ino) {
 #ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
 void susfs_try_umount(uid_t target_uid) {}
 #endif
+
+int susfs_handle_ioctl(unsigned int cmd, unsigned long arg) {
+    void __user *argp = (void __user *)arg;
+    void __user **user_info = &argp;
+
+    switch (arg) {
+        case CMD_SUSFS_ADD_SUS_PATH:
+            susfs_add_sus_path(user_info);
+            break;
+        case CMD_SUSFS_SET_ANDROID_DATA_ROOT_PATH:
+        case CMD_SUSFS_SET_SDCARD_ROOT_PATH:
+            susfs_set_i_state_on_external_dir(user_info);
+            break;
+        case CMD_SUSFS_ADD_SUS_PATH_LOOP:
+            susfs_add_sus_path_loop(user_info);
+            break;
+        case CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS:
+            susfs_set_hide_sus_mnts_for_non_su_procs(user_info);
+            break;
+        case CMD_SUSFS_ADD_SUS_KSTAT:
+            susfs_add_sus_kstat(user_info);
+            break;
+        case CMD_SUSFS_UPDATE_SUS_KSTAT:
+            susfs_update_sus_kstat(user_info);
+            break;
+        case CMD_SUSFS_SET_UNAME:
+            susfs_set_uname(user_info);
+            break;
+        case CMD_SUSFS_ENABLE_LOG:
+            susfs_enable_log(user_info);
+            break;
+        case CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG:
+            susfs_set_cmdline_or_bootconfig(user_info);
+            break;
+        case CMD_SUSFS_ADD_OPEN_REDIRECT:
+            susfs_add_open_redirect(user_info);
+            break;
+        case CMD_SUSFS_SHOW_VERSION:
+            susfs_show_version(user_info);
+            break;
+        case CMD_SUSFS_SHOW_ENABLED_FEATURES:
+            susfs_get_enabled_features(user_info);
+            break;
+        case CMD_SUSFS_SHOW_VARIANT:
+            susfs_show_variant(user_info);
+            break;
+        case CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING:
+            susfs_set_avc_log_spoofing(user_info);
+            break;
+        default:
+            return -ENOTTY;
+    }
+    return 0;
+}

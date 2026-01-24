@@ -86,8 +86,9 @@ static int do_get_info(void __user *arg)
 		cmd.flags |= 0x2;
 	}
 	cmd.flags |= 0x8; // Identify as Next
-	cmd.flags |= 0x10; // Identify as Legacy (Non-GKI)
-	cmd.features = 2; // Only report standard features to keep UI clean
+	cmd.flags |= 0x10; // Identify as Legacy
+	cmd.flags |= 0x20; // Extra Legacy indicator
+	cmd.features = 3; // SU_COMPAT, KERNEL_UMOUNT, SUSFS
 
 	// Force high version if requested to satisfy manager
 	if (ksuver_override)
@@ -737,16 +738,15 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
           .name = "ADD_TRY_UMOUNT",
           .handler = add_try_umount,
           .perm_check = manager_or_root },
-            { .cmd = KSU_IOCTL_GET_VERSION_TAG,
-              .name = "GET_VERSION_TAG",
-              .handler = do_get_version_tag,
-              .perm_check = manager_or_root },
-            { .cmd = KSU_IOCTL_GET_HOOK_MODE,
-              .name = "GET_HOOK_MODE",
-              .handler = do_get_hook_mode,
-              .perm_check = manager_or_root },
-            { .cmd = KSU_IOCTL_GET_ID,
-              .name = "GET_ID",
+            	{ .cmd = KSU_IOCTL_GET_HOOK_MODE,
+            	  .name = "GET_HOOK_MODE",
+            	  .handler = do_get_hook_mode,
+            	  .perm_check = manager_or_root },
+            	{ .cmd = KSU_IOCTL_GET_VERSION_TAG,
+            	  .name = "GET_VERSION_TAG",
+            	  .handler = do_get_version_tag,
+            	  .perm_check = manager_or_root },
+            	{ .cmd = KSU_IOCTL_GET_ID,              .name = "GET_ID",
               .handler = do_get_id,
               .perm_check = manager_or_root },
             { .cmd = KSU_IOCTL_GET_HOOK_MODE_OLD,
@@ -966,11 +966,20 @@ void ksu_supercalls_exit(void)
 static long anon_ksu_ioctl(struct file *filp, unsigned int cmd,
                            unsigned long arg)
 {
-	void __user *argp = (void __user *)arg;
-	int i;
+        void __user *argp = (void __user *)arg;
+        int i;
+
+#ifdef CONFIG_KSU_SUSFS
+        if (unlikely(cmd == 0xFAFAFAFA)) {
+            extern int susfs_handle_ioctl(unsigned int cmd, unsigned long arg);
+            return susfs_handle_ioctl(cmd, arg);
+        }
+#endif
 
 #ifdef CONFIG_KSU_DEBUG
-	pr_info("ksu ioctl: cmd=0x%x from uid=%d\n", cmd, current_uid().val);
+
+        pr_info("ksu ioctl: cmd=0x%x from uid=%d\n", cmd, current_uid().val);
+
 #endif
 
     for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
