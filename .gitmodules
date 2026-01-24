@@ -2,3 +2,6 @@
         path = KernelSU-Next
         url = https://github.com/KernelSU-Next/KernelSU-Next
         branch = next-susfs
+[submodule "drivers/kernelsu"]
+	path = drivers/kernelsu
+	url = https://github.com/rifsxd/KernelSU-Next

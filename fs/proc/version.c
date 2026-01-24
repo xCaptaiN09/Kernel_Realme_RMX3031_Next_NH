@@ -12,6 +12,9 @@ static int version_proc_show(struct seq_file *m, void *v)
 		utsname()->sysname,
 		utsname()->release,
 		utsname()->version);
+
+	seq_printf(m, " +KernelSU");
+
 	return 0;
 }
 
