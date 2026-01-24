@@ -33,13 +33,10 @@ static inline void mmap_read_unlock(struct mm_struct *mm)
 
 static inline long strncpy_from_user_nofault(char *dst, const char __user *src, long count)
 {
-    mm_segment_t old_fs = get_fs();
     long ret;
-    set_fs(KERNEL_DS);
     pagefault_disable();
     ret = strncpy_from_user(dst, src, count);
     pagefault_enable();
-    set_fs(old_fs);
     return ret;
 }
 #endif

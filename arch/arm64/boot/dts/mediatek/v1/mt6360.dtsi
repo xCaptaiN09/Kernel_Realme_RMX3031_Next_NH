@@ -5,6 +5,7 @@
 
 &i2c5 {
 	mt6360_pmu: mt6360_pmu_dts {
+		compatible = "mediatek,mt6360_pmu";
 		status = "ok";
 #if defined (CONFIG_MACH_MT6877)
 		mt6360,intr_gpio_num = <4>; /* direct defined GPIO num */

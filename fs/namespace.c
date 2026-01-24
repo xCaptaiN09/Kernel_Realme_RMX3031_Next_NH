@@ -116,6 +116,14 @@ EXPORT_SYMBOL_GPL(fs_kobj);
  */
 __cacheline_aligned_in_smp DEFINE_SEQLOCK(mount_lock);
 
+static void drop_mountpoint(struct fs_pin *p)
+{
+        struct mount *m = container_of(p, struct mount, mnt_umount);
+        dput(m->mnt_ex_mountpoint);
+        pin_remove(p);
+        mntput(&m->mnt);
+}
+
 static inline struct hlist_head *m_hash(struct vfsmount *mnt, struct dentry *dentry)
 {
 	unsigned long tmp = ((unsigned long)mnt / L1_CACHE_BYTES);
@@ -137,10 +145,42 @@ static struct mount *susfs_reuse_sus_vfsmnt(const char *name, int orig_mnt_id)
 {
 	struct mount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
 	if (mnt) {
-		        INIT_HLIST_NODE(&mnt->mnt_mp_list);
-				INIT_LIST_HEAD(&mnt->mnt_umounting);
-			}
-			return mnt;
+		mnt->mnt_id = orig_mnt_id;
+
+		if (name) {
+			mnt->mnt_devname = kstrdup_const(name,
+							 GFP_KERNEL_ACCOUNT);
+			if (!mnt->mnt_devname)
+				goto out_free_cache;
+		}
+
+#ifdef CONFIG_SMP
+		mnt->mnt_pcp = alloc_percpu(struct mnt_pcp);
+		if (!mnt->mnt_pcp)
+			goto out_free_devname;
+
+		this_cpu_add(mnt->mnt_pcp->mnt_count, 1);
+#else
+		mnt->mnt_count = 1;
+		mnt->mnt_writers = 0;
+#endif
+		// Makes ida_free() easier to determine whether it should free the mnt_id or not
+		mnt->mnt.susfs_mnt_id_backup = DEFAULT_KSU_MNT_ID;
+
+		INIT_HLIST_NODE(&mnt->mnt_hash);
+		INIT_LIST_HEAD(&mnt->mnt_child);
+		INIT_LIST_HEAD(&mnt->mnt_mounts);
+		INIT_LIST_HEAD(&mnt->mnt_list);
+		INIT_LIST_HEAD(&mnt->mnt_expire);
+		INIT_LIST_HEAD(&mnt->mnt_share);
+		INIT_LIST_HEAD(&mnt->mnt_slave_list);
+		INIT_LIST_HEAD(&mnt->mnt_slave);
+		INIT_HLIST_NODE(&mnt->mnt_mp_list);
+		INIT_LIST_HEAD(&mnt->mnt_umounting);
+		init_fs_pin(&mnt->mnt_umount, drop_mountpoint);
+	}
+	return mnt;
+
 #ifdef CONFIG_SMP
 out_free_devname:
 	kfree_const(mnt->mnt_devname);
@@ -187,6 +227,7 @@ static struct mount *susfs_alloc_sus_vfsmnt(const char *name)
 		INIT_LIST_HEAD(&mnt->mnt_slave);
 		INIT_HLIST_NODE(&mnt->mnt_mp_list);
 		INIT_LIST_HEAD(&mnt->mnt_umounting);
+		init_fs_pin(&mnt->mnt_umount, drop_mountpoint);
 	}
 	return mnt;
 
@@ -315,16 +356,7 @@ unsigned int mnt_get_count(struct mount *mnt)
 #endif
 }
 
-static void drop_mountpoint(struct fs_pin *p)
-{
-	struct mount *m = container_of(p, struct mount, mnt_umount);
-	dput(m->mnt_ex_mountpoint);
-	pin_remove(p);
-	mntput(&m->mnt);
-}
-
-static struct mount *alloc_vfsmnt(const char *name)
-{
+static struct mount *alloc_vfsmnt(const char *name){
 	struct mount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
 	if (mnt) {
 		int err;
