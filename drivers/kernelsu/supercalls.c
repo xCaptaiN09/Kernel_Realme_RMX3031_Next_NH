@@ -79,13 +79,21 @@ static int do_get_info(void __user *arg)
 	cmd.flags |= 0x1;
 #endif
 
-	if (ksuver_override)
-	    cmd.version = ksuver_override;
-
+	// Flag 0x2 is for Manager status, but we also need to signal we are "Next"
+	// Many managers check for a high version or specific flags.
+	// We'll set bit 1 (0x2) if recognized as manager, and let's add bit 3 (0x8) as a "Next" identifier if needed.
 	if (is_manager()) {
 		cmd.flags |= 0x2;
 	}
-	cmd.features = KSU_FEATURE_MAX;
+	cmd.flags |= 0x8; // Identify as Next
+	cmd.flags |= 0x10; // Identify as Legacy (Non-GKI)
+	cmd.features = 2; // Only report standard features to keep UI clean
+
+	// Force high version if requested to satisfy manager
+	if (ksuver_override)
+	    cmd.version = ksuver_override;
+	else if (cmd.version < 33000)
+		cmd.version = 33000; // Ensure it looks like Next v3.0.0+
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_version: copy_to_user failed\n");
@@ -439,18 +447,31 @@ static int do_get_hook_mode(void __user *arg)
 
 static int do_get_version_tag(void __user *arg)
 {
-	struct ksu_get_version_tag_cmd cmd = {0};
+        struct ksu_get_version_tag_cmd cmd = {0};
 
-	strscpy(cmd.tag, KERNEL_SU_VERSION_TAG, sizeof(cmd.tag));
+        strscpy(cmd.tag, KERNEL_SU_VERSION_TAG, sizeof(cmd.tag));
 
-	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-		pr_err("get_version_tag: copy_to_user failed\n");
-		return -EFAULT;
-	}
+        if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+                pr_err("get_version_tag: copy_to_user failed\n");
+                return -EFAULT;
+        }
 
-	return 0;
+        return 0;
 }
 
+static int do_get_id(void __user *arg)
+{
+        struct ksu_get_id_cmd cmd = {0};
+
+        strscpy(cmd.id, "NetHunter-Next-by-xCaptaiN09-Source-dek0der", sizeof(cmd.id));
+
+        if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+                pr_err("get_id: copy_to_user failed\n");
+                return -EFAULT;
+        }
+
+        return 0;
+}
 static int do_nuke_ext4_sysfs(void __user *arg)
 {
     struct ksu_nuke_ext4_sysfs_cmd cmd;
@@ -712,21 +733,32 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
       .name = "NUKE_EXT4_SYSFS",
       .handler = do_nuke_ext4_sysfs,
       .perm_check = manager_or_root },
-    { .cmd = KSU_IOCTL_ADD_TRY_UMOUNT,
-      .name = "ADD_TRY_UMOUNT",
-      .handler = add_try_umount,
-      .perm_check = manager_or_root },
-	{ .cmd = KSU_IOCTL_GET_HOOK_MODE,
-	  .name = "GET_HOOK_MODE",
-	  .handler = do_get_hook_mode,
-	  .perm_check = manager_or_root },
-	{ .cmd = KSU_IOCTL_GET_VERSION_TAG,
-	  .name = "GET_VERSION_TAG",
-	  .handler = do_get_version_tag,
-	  .perm_check = manager_or_root },
-    { .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
-};
-
+        { .cmd = KSU_IOCTL_ADD_TRY_UMOUNT,
+          .name = "ADD_TRY_UMOUNT",
+          .handler = add_try_umount,
+          .perm_check = manager_or_root },
+            { .cmd = KSU_IOCTL_GET_VERSION_TAG,
+              .name = "GET_VERSION_TAG",
+              .handler = do_get_version_tag,
+              .perm_check = manager_or_root },
+            { .cmd = KSU_IOCTL_GET_HOOK_MODE,
+              .name = "GET_HOOK_MODE",
+              .handler = do_get_hook_mode,
+              .perm_check = manager_or_root },
+            { .cmd = KSU_IOCTL_GET_ID,
+              .name = "GET_ID",
+              .handler = do_get_id,
+              .perm_check = manager_or_root },
+            { .cmd = KSU_IOCTL_GET_HOOK_MODE_OLD,
+              .name = "GET_HOOK_MODE_OLD",
+              .handler = do_get_hook_mode,
+              .perm_check = manager_or_root },
+            { .cmd = KSU_IOCTL_GET_VERSION_TAG_OLD,
+              .name = "GET_VERSION_TAG_OLD",
+              .handler = do_get_version_tag,
+              .perm_check = manager_or_root },
+        { .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
+    };
 struct ksu_install_fd_tw {
 	struct callback_head cb;
 	int __user *outp;
@@ -738,6 +770,13 @@ static void ksu_install_fd_tw_func(struct callback_head *cb)
         container_of(cb, struct ksu_install_fd_tw, cb);
     int fd = ksu_install_fd();
     pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
+
+	// Auto-crown the manager if it's the one installing the FD
+	if (ksu_manager_appid == KSU_INVALID_APPID) {
+		uid_t appid = current_uid().val % PER_USER_RANGE;
+		pr_info("KernelSU: Auto-crowning manager appid: %d\n", appid);
+		ksu_set_manager_appid(appid);
+	}
 
 	if (copy_to_user(tw->outp, &fd, sizeof(fd))) {
 		pr_err("install ksu fd reply err\n");
@@ -939,8 +978,8 @@ static long anon_ksu_ioctl(struct file *filp, unsigned int cmd,
             // Check permission first
             if (ksu_ioctl_handlers[i].perm_check &&
                 !ksu_ioctl_handlers[i].perm_check()) {
-                pr_warn("ksu ioctl: permission denied for cmd=0x%x uid=%d\n",
-                        cmd, current_uid().val);
+                pr_err("KernelSU: permission denied for cmd=0x%x (name=%s) uid=%d manager=%d\n",
+                        cmd, ksu_ioctl_handlers[i].name, current_uid().val, is_manager());
                 return -EPERM;
             }
             // Execute handler

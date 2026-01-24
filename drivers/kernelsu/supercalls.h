@@ -100,6 +100,10 @@ struct ksu_get_version_tag_cmd {
 	char tag[32];
 };
 
+struct ksu_get_id_cmd {
+	char id[64];
+};
+
 #define KSU_MARK_GET 1
 #define KSU_MARK_MARK 2
 #define KSU_MARK_UNMARK 3
@@ -138,8 +142,11 @@ struct ksu_add_try_umount_cmd {
 #define KSU_IOCTL_MANAGE_MARK _IOC(_IOC_READ | _IOC_WRITE, 'K', 16, 0)
 #define KSU_IOCTL_NUKE_EXT4_SYSFS _IOC(_IOC_WRITE, 'K', 17, 0)
 #define KSU_IOCTL_ADD_TRY_UMOUNT _IOC(_IOC_WRITE, 'K', 18, 0)
-#define KSU_IOCTL_GET_HOOK_MODE _IOC(_IOC_READ, 'K', 98, 0)
-#define KSU_IOCTL_GET_VERSION_TAG _IOC(_IOC_READ, 'K', 99, 0)
+#define KSU_IOCTL_GET_VERSION_TAG _IOC(_IOC_READ, 'K', 19, 0)
+#define KSU_IOCTL_GET_HOOK_MODE _IOC(_IOC_READ, 'K', 20, 0)
+#define KSU_IOCTL_GET_ID _IOC(_IOC_READ, 'K', 21, 0)
+#define KSU_IOCTL_GET_HOOK_MODE_OLD _IOC(_IOC_READ, 'K', 98, 0)
+#define KSU_IOCTL_GET_VERSION_TAG_OLD _IOC(_IOC_READ, 'K', 99, 0)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);

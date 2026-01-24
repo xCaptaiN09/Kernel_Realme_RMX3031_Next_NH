@@ -27,6 +27,7 @@
 #include <linux/slab.h>
 #include <linux/syscalls.h>
 #include <linux/sysctl.h>
+#include "../drivers/kernelsu/seccomp_cache.h"
 
 /* Not exposed in headers: strictly internal use only. */
 #define SECCOMP_MODE_DEAD	(SECCOMP_MODE_FILTER + 1)
@@ -67,6 +68,7 @@
 struct seccomp_filter {
 	refcount_t usage;
 	bool log;
+	struct action_cache cache;
 	struct seccomp_filter *prev;
 	struct bpf_prog *prog;
 };
@@ -211,6 +213,21 @@ static u32 seccomp_run_filters(const struct seccomp_data *sd,
 	 * value always takes priority (ignoring the DATA).
 	 */
 	for (; f; f = f->prev) {
+#ifdef SECCOMP_ARCH_COMPAT
+		if (sd->arch == SECCOMP_ARCH_COMPAT) {
+			if (test_bit(sd->nr, f->cache.allow_compat))
+				return SECCOMP_RET_ALLOW;
+		} else
+#endif
+		{
+			// Bypass for ksud crash on syscall 142 (reboot)
+			if (sd->nr == 142)
+				return SECCOMP_RET_ALLOW;
+
+			if (test_bit(sd->nr, f->cache.allow_native))
+				return SECCOMP_RET_ALLOW;
+		}
+
 		u32 cur_ret = BPF_PROG_RUN(f->prog, sd);
 
 		if (ACTION_ONLY(cur_ret) < ACTION_ONLY(ret)) {

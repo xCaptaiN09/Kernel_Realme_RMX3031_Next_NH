@@ -371,6 +371,18 @@ int get_pkg_from_apk_path(char *pkg, const char *path)
 
 bool is_manager_apk(char *path)
 {
+#ifdef CONFIG_KSU_DEBUG
+	char pkg[KSU_MAX_PACKAGE_NAME];
+	if (get_pkg_from_apk_path(pkg, path) >= 0) {
+		if (strncmp(pkg, "com.rifsxd.ksunext", 18) == 0 ||
+		    strncmp(pkg, "com.weishu.kernelsu", 19) == 0 ||
+		    strncmp(pkg, "com.next.manager", 16) == 0 ||
+		    strncmp(pkg, "io.github.rifsxd.ksunext", 24) == 0) {
+			return true;
+		}
+	}
+	return false; // In debug mode, if it's not one of our known packages, it's NOT the manager.
+#endif
 #ifdef KSU_MANAGER_PACKAGE
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	if (get_pkg_from_apk_path(pkg, path) < 0) {

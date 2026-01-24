@@ -55,7 +55,7 @@ ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 else
 # If there is no .git directory, use default version
 $(warning "KSU_GIT_VERSION not defined! It is better to make KernelSU-Next a git repository!")
-KSU_VERSION_FALLBACK := 31500
+KSU_VERSION_FALLBACK := 33000
 $(info -- KernelSU-Next version fallback: $(KSU_VERSION_FALLBACK))
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION_FALLBACK)
 endif
@@ -72,11 +72,11 @@ ccflags-y += -DKSU_VERSION_TAG=\"$(KSU_VERSION_TAG_FALLBACK)\"
 endif
 
 ifndef KSU_NEXT_MANAGER_SIZE
-KSU_NEXT_MANAGER_SIZE := 0x3e6
+KSU_NEXT_MANAGER_SIZE := 0x3ca
 endif
 
 ifndef KSU_NEXT_MANAGER_HASH
-KSU_NEXT_MANAGER_HASH := 79e590113c4c4c0c222978e413a5faa801666957b1212a328e46c00c69821bf7
+KSU_NEXT_MANAGER_HASH := 1913012d6e4a0f3f0ae107f97c2af247acc07d0aa651ccaa99cae99cae99cae9
 endif
 
 ifdef KSU_MANAGER_PACKAGE

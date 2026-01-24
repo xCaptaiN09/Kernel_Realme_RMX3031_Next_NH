@@ -28,7 +28,7 @@ static struct mfd_cell mt6360_pmu_subdevs[] = {
 	},
 	{
 		.name = "mt6360_pmu_fled",
-		.of_compatible = "mediatek,flashlights_mt6360",
+		.of_compatible = "mediatek,mt6360_pmu_fled",
 		.pm_runtime_no_callbacks = true,
 	},
 	{
