@@ -5,16 +5,15 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/utsname.h>
+#include <generated/compile.h>
 
 static int version_proc_show(struct seq_file *m, void *v)
 {
-	seq_printf(m, linux_proc_banner,
+    pr_err("KernelSU: version_proc_show called\n");
+	seq_printf(m, "%s version %s (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") %s +KernelSU\n",
 		utsname()->sysname,
 		utsname()->release,
 		utsname()->version);
-
-	seq_printf(m, " +KernelSU");
-
 	return 0;
 }
 
