@@ -88,13 +88,14 @@ static int do_get_info(void __user *arg)
 	cmd.flags |= 0x8; // Identify as Next
 	cmd.flags |= 0x10; // Identify as Legacy
 	cmd.flags |= 0x20; // Extra Legacy indicator
+	cmd.flags |= 0x40; // Full Legacy Mode
 	cmd.features = 3; // SU_COMPAT, KERNEL_UMOUNT, SUSFS
 
 	// Force high version if requested to satisfy manager
 	if (ksuver_override)
 	    cmd.version = ksuver_override;
-	else if (cmd.version < 33000)
-		cmd.version = 33000; // Ensure it looks like Next v3.0.0+
+	else if (cmd.version < 33001)
+		cmd.version = 33001; // Ensure it looks like Next v3.0.0+
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_version: copy_to_user failed\n");
@@ -738,15 +739,15 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
           .name = "ADD_TRY_UMOUNT",
           .handler = add_try_umount,
           .perm_check = manager_or_root },
-            	{ .cmd = KSU_IOCTL_GET_HOOK_MODE,
-            	  .name = "GET_HOOK_MODE",
-            	  .handler = do_get_hook_mode,
-            	  .perm_check = manager_or_root },
-            	{ .cmd = KSU_IOCTL_GET_VERSION_TAG,
-            	  .name = "GET_VERSION_TAG",
-            	  .handler = do_get_version_tag,
-            	  .perm_check = manager_or_root },
-            	{ .cmd = KSU_IOCTL_GET_ID,              .name = "GET_ID",
+            		{ .cmd = KSU_IOCTL_GET_VERSION_TAG,
+            		  .name = "GET_VERSION_TAG",
+            		  .handler = do_get_version_tag,
+            		  .perm_check = manager_or_root },
+            		{ .cmd = KSU_IOCTL_GET_HOOK_MODE,
+            		  .name = "GET_HOOK_MODE",
+            		  .handler = do_get_hook_mode,
+            		  .perm_check = manager_or_root },
+            		{ .cmd = KSU_IOCTL_GET_ID,              .name = "GET_ID",
               .handler = do_get_id,
               .perm_check = manager_or_root },
             { .cmd = KSU_IOCTL_GET_HOOK_MODE_OLD,
