@@ -1037,9 +1037,7 @@ int susfs_sus_ino_for_filldir64(unsigned long ino) {
 }
 #endif
 
-#ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
 void susfs_try_umount(uid_t target_uid) {}
-#endif
 
 int susfs_handle_ioctl(unsigned int cmd, unsigned long arg) {
     void __user *argp = (void __user *)arg;

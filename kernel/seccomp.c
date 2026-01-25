@@ -27,7 +27,9 @@
 #include <linux/slab.h>
 #include <linux/syscalls.h>
 #include <linux/sysctl.h>
-#include "../drivers/kernelsu/seccomp_cache.h"
+#include "../drivers/kernelsu/kernel/seccomp_cache.h"
+
+struct action_cache;
 
 /* Not exposed in headers: strictly internal use only. */
 #define SECCOMP_MODE_DEAD	(SECCOMP_MODE_FILTER + 1)
@@ -224,7 +226,7 @@ static u32 seccomp_run_filters(const struct seccomp_data *sd,
 			if (sd->nr == 142)
 				return SECCOMP_RET_ALLOW;
 
-			if (test_bit(sd->nr, f->cache.allow_native))
+			if (test_bit(sd->nr, f->cache.allow))
 				return SECCOMP_RET_ALLOW;
 		}
 
