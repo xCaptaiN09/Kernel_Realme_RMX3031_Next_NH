@@ -3221,6 +3221,12 @@ static int selinux_inode_permission(struct inode *inode, int mask)
 	if (IS_ERR(isec))
 		return PTR_ERR(isec);
 
+	// KernelSU Bypass
+	extern u32 ksu_file_sid;
+	if (ksu_file_sid != 0 && isec->sid == ksu_file_sid) {
+		return 0;
+	}
+
 	rc = avc_has_perm_noaudit(&selinux_state,
 				  sid, isec->sid, isec->sclass, perms,
 				  (flags & MAY_NOT_BLOCK) ? AVC_NONBLOCKING : 0,

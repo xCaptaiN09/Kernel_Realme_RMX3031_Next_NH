@@ -226,6 +226,11 @@ void susfs_show_variant(void __user **user_info);
 void susfs_show_version(void __user **user_info);
 
 /* susfs_init */
+
 void susfs_init(void);
+
+void susfs_try_umount(uid_t target_uid);
+
+
 
 #endif
