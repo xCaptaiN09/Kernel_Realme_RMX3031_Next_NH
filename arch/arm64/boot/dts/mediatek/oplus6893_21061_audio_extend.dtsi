@@ -17,6 +17,7 @@
 		reset-gpio = <&pio 193 0>;
 		tfa_min_range = <5000>;
 		tfa_max_range = <8000>;
+		tfa_channel = <1>;
 		status = "okay";
 	};
 
@@ -26,6 +27,7 @@
 		reset-gpio = <&pio 148 0>;
 		tfa_min_range = <5000>;
 		tfa_max_range = <8000>;
+		tfa_channel = <0>;
 		status = "okay";
 	};
 };
